@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 using namespace std;
 
@@ -24,6 +25,7 @@ char menu();
 bool verificador_menu(char &);
 string pedir_cedula();
 
+void generarClave(Numero &clave, Cola_Virtual *queue);
 int main(){
 	//INICIALIZAR COLAS Y PILAS
 	Cola_Virtual cola;
@@ -37,6 +39,7 @@ int main(){
 		switch(resp){
 			case 'A':
 				numero = pedir_cedula();
+				generarClave(numero,&cola);
 				enqueue(&cola, numero);
 				cout << "La clave es: " << numero << endl;
 				system("PAUSE");
@@ -98,7 +101,7 @@ string pedir_cedula(){
 }
 
 
-// Código para la cola
+// Cï¿½digo para la cola
 void newQueue(Cola_Virtual *q_ptr){ //Nueva cola
 	q_ptr->front = -1;
 	q_ptr->rear = -1;
@@ -156,4 +159,45 @@ Numero front(Cola_Virtual *q_ptr){ //Para encontrar la cabeza de la cola
 }
 
 
+void generarClave(Numero &clave, Cola_Virtual *cola) {
+    Numero cedula = clave;
+    int len = cedula.length();
+
+    for (int i = len - 3; i >= 0; i--) {
+        // Genera una nueva clave con los ï¿½ltimos 3 dï¿½gitos
+        clave = cedula.substr(i, 3);
+        
+        // Verifica si la clave generada ya existe en la cola
+        bool clave_existente = false;
+        for (int j = cola->front; j <= cola->rear; j++) {
+            if (cola->queue[j] == clave) {
+                clave_existente = true;
+                break;
+            }
+        }
+
+        // Si la clave no existe, termina el bucle
+        if (!clave_existente)
+            break;
+    }
+/*
+    // Si no se encontrï¿½ una clave ï¿½nica, invierte la cï¿½dula y repite el proceso
+    if (clave == cedula) {
+		
+		reverse(cedula.begin(), cedula.end());
+		for (int i = len - 3; i >= 0; i--) {
+			clave = cedula.substr(i, 3);
+            bool clave_existente = false;
+            for (int j = cola->front; j <= cola->rear; j++) {
+                if (cola->queue[j] == clave) {
+                    clave_existente = true;
+                    break;
+                }
+            }
+            if (!clave_existente)
+                return;
+		}
+        generarClave(cedula, cola); // Llama recursivamente a la funciï¿½n con la cï¿½dula invertida
+    }*/
+}
 
