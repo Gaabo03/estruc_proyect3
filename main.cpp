@@ -4,20 +4,20 @@
 using namespace std;
 
 //Para cola
-#define QUEUEMAX 100
+#define QUEUEMAX 6
 typedef string Numero;
 typedef struct queuer {
 	int front; //Frente de la cola
 	int rear; //Final de la cola
 	Numero queue[QUEUEMAX];
+	bool isEmpty;
+	bool isFull;
 } Cola_Virtual;
 
 void newQueue(Cola_Virtual *queue);
 void enqueue(Cola_Virtual *q_ptr, Numero elem);
 Numero dequeue(Cola_Virtual *q_ptr);
 Numero front(Cola_Virtual *q_ptr);
-bool isempty(Cola_Virtual *q_ptr);
-bool isFull(Cola_Virtual *q_ptr);
 
 
 char menu();
@@ -100,14 +100,28 @@ string pedir_cedula(){
 
 // Código para la cola
 void newQueue(Cola_Virtual *q_ptr){ //Nueva cola
-	q_ptr->front = 0;
+	q_ptr->front = -1;
 	q_ptr->rear = -1;
+	q_ptr->isEmpty = true;
+	q_ptr->isFull = false;
 }
 
 void enqueue(Cola_Virtual *q_ptr, Numero elem){ //Insertar un elemento en la cola
-	if (!isFull(q_ptr)){
-		q_ptr->rear++;
+	if (!q_ptr->isFull){
+		if (q_ptr->rear >= QUEUEMAX-1)
+			q_ptr->rear = 0;
+		else
+			q_ptr->rear++;
+
 		q_ptr->queue[q_ptr->rear] = elem;
+		
+		if (q_ptr->front == -1)
+			q_ptr->front = q_ptr->rear;	
+		q_ptr->isEmpty = false;
+		if (q_ptr->front == q_ptr->rear+1)
+			q_ptr->isFull = true;
+	} else {
+		cout << "La cola esta llena" << endl;
 	}
 	return;
 }
@@ -115,35 +129,30 @@ void enqueue(Cola_Virtual *q_ptr, Numero elem){ //Insertar un elemento en la col
 Numero dequeue(Cola_Virtual *q_ptr){ //Eliminar elemento de la cola
 	Numero element;
 	int i;
-	if (!isempty(q_ptr)){
+	if (!q_ptr->isEmpty){
 		element = q_ptr->queue[q_ptr->front];
-		q_ptr->rear--;
-		for (i = 0; i <= q_ptr->rear; i++)
-			q_ptr->queue[i] = q_ptr->queue[i + 1];
+		if (q_ptr->front == q_ptr->rear){
+			q_ptr->front = -1;
+			q_ptr->rear = -1;
+			q_ptr->isEmpty = true;
+		} else {
+			if (q_ptr->front >= QUEUEMAX-1)
+				q_ptr->front = 0;
+			else
+				q_ptr->front++;
+		}
 		return element;
+	} else {
+		cout << "La cola esta vacia" << endl;
 	}
 	return "";
 }
 
 Numero front(Cola_Virtual *q_ptr){ //Para encontrar la cabeza de la cola
-	if (!isempty(q_ptr))
+	if (!q_ptr->isEmpty)
 		return q_ptr->queue[q_ptr->front];
 	else
 		return "";
-}
-
-bool isempty(Cola_Virtual *q_ptr){
-	if (q_ptr->rear == -1)
-		return true;
-	else
-		return false;
-}
-
-bool isFull(Cola_Virtual *q_ptr){
-	if (q_ptr->rear == QUEUEMAX - 1)
-		return true;
-	else
-		return false;
 }
 
 
