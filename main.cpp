@@ -4,8 +4,9 @@
 
 using namespace std;
 
-//Para cola
-#define QUEUEMAX 6
+#define QUEUEMAX 10
+#define STACKMAX 10
+
 typedef string Numero;
 typedef struct queuer {
 	int front; //Frente de la cola
@@ -15,17 +16,29 @@ typedef struct queuer {
 	bool isFull;
 } Cola_Virtual;
 
+typedef char Digito;
+typedef struct stacker {
+	int top;
+	Digito stack[STACKMAX];
+} Pila;
+
+//Para cola
 void newQueue(Cola_Virtual *queue);
 void enqueue(Cola_Virtual *q_ptr, Numero elem);
 Numero dequeue(Cola_Virtual *q_ptr);
-Numero front(Cola_Virtual *q_ptr);
+//Para pila
+void newStack(Pila *stack);
+void push (Pila *st_ptr, Digito elem);
+Digito pop(Pila *st_ptr);
+bool isEmpty(Pila *st_ptr);
+bool isFull(Pila *st_ptr);
 
 
 char menu();
 bool verificador_menu(char &);
 string pedir_cedula();
+Numero generarClave(Cola_Virtual queue, Numero cedula);
 
-void generarClave(Numero &clave, Cola_Virtual *queue);
 int main(){
 	//INICIALIZAR COLAS Y PILAS
 	Cola_Virtual cola;
@@ -38,20 +51,21 @@ int main(){
 		
 		switch(resp){
 			case 'A':
-				numero = pedir_cedula();
-				generarClave(numero,&cola);
-				enqueue(&cola, numero);
-				cout << "La clave es: " << numero << endl;
+				numero = generarClave(cola, pedir_cedula());
+				if (numero != "")
+					enqueue(&cola, numero);
 				system("PAUSE");
 				break;
 			case '1':
-				numero = dequeue(&cola);
-				cout << "Pase a la taquilla 1: " << numero << endl;
-				system("PAUSE");
-				break;
 			case '2':
-				break;
 			case '3':
+				numero = dequeue(&cola);
+				if (numero != "")
+					cout << "|\n| Pase a la TAQUILLA " << resp << ": " << numero;
+				else
+					cout << "|\n| La cola esta vacia ";
+				cout <<"\n| ";
+				system("PAUSE");
 				break;
 			default:
 				break;
@@ -95,7 +109,7 @@ bool verificador_menu(char &resp){
 
 string pedir_cedula(){
 	string cedula;
-	cout << "Ingrese numero de cedula:";
+	cout << "|\n| Ingrese numero de cedula: ";
 	cin >> cedula;
 	return cedula;
 }
@@ -111,17 +125,18 @@ void newQueue(Cola_Virtual *q_ptr){ //Nueva cola
 
 void enqueue(Cola_Virtual *q_ptr, Numero elem){ //Insertar un elemento en la cola
 	if (!q_ptr->isFull){
+		
 		if (q_ptr->rear >= QUEUEMAX-1)
 			q_ptr->rear = 0;
 		else
 			q_ptr->rear++;
 
 		q_ptr->queue[q_ptr->rear] = elem;
+		q_ptr->isEmpty = false;
 		
 		if (q_ptr->front == -1)
 			q_ptr->front = q_ptr->rear;	
-		q_ptr->isEmpty = false;
-		if (q_ptr->front == q_ptr->rear+1)
+		if ((q_ptr->rear + 1) % QUEUEMAX == q_ptr->front)
 			q_ptr->isFull = true;
 	} else {
 		cout << "La cola esta llena" << endl;
@@ -144,60 +159,103 @@ Numero dequeue(Cola_Virtual *q_ptr){ //Eliminar elemento de la cola
 			else
 				q_ptr->front++;
 		}
+		q_ptr->isFull = false;
 		return element;
-	} else {
-		cout << "La cola esta vacia" << endl;
 	}
 	return "";
 }
 
-Numero front(Cola_Virtual *q_ptr){ //Para encontrar la cabeza de la cola
-	if (!q_ptr->isEmpty)
-		return q_ptr->queue[q_ptr->front];
-	else
-		return "";
+//CODIGO PARA PILA
+void newStack(Pila *st_ptr){
+	st_ptr->top = -1;
 }
 
+void push(Pila *st_ptr, Digito elem){
+	if (st_ptr == NULL || isFull(st_ptr))
+		return;
+	else{
+		st_ptr->top++;
+		st_ptr->stack[st_ptr->top] = elem;
+		return;
+	}
+}
 
-void generarClave(Numero &clave, Cola_Virtual *cola) {
-    Numero cedula = clave;
+Digito pop(Pila *st_ptr){
+	if (isEmpty(st_ptr))
+		return '\0';
+	else
+		return st_ptr->stack[st_ptr->top--];
+}
+
+bool isEmpty(Pila *st_ptr){
+	return (st_ptr == NULL || st_ptr->top == -1) ? true : false;
+}
+
+bool isFull(Pila *st_ptr){
+	return (st_ptr == NULL || st_ptr->top == STACKMAX) ? true : false;
+}
+
+Numero generarClave(Cola_Virtual cola, Numero cedula) {
+    Numero clave;
     int len = cedula.length();
-
+    bool clave_existente = false;
+    
+    if (cola.isFull){
+		cout << "| La cola ha llegado a su maximo. \n| ";
+    	return "";
+    }
     for (int i = len - 3; i >= 0; i--) {
         // Genera una nueva clave con los �ltimos 3 d�gitos
         clave = cedula.substr(i, 3);
-        
+        clave_existente = false;
         // Verifica si la clave generada ya existe en la cola
-        bool clave_existente = false;
-        for (int j = cola->front; j <= cola->rear; j++) {
-            if (cola->queue[j] == clave) {
-                clave_existente = true;
-                break;
-            }
-        }
-
-        // Si la clave no existe, termina el bucle
-        if (!clave_existente)
-            break;
-    }
-/*
-    // Si no se encontr� una clave �nica, invierte la c�dula y repite el proceso
-    if (clave == cedula) {
-		
-		reverse(cedula.begin(), cedula.end());
-		for (int i = len - 3; i >= 0; i--) {
-			clave = cedula.substr(i, 3);
-            bool clave_existente = false;
-            for (int j = cola->front; j <= cola->rear; j++) {
-                if (cola->queue[j] == clave) {
-                    clave_existente = true;
-                    break;
-                }
-            }
-            if (!clave_existente)
-                return;
+        if (!cola.isEmpty){
+	        for (int j = 0; j < QUEUEMAX; j++) {
+	            if (cola.queue[j] == clave) {
+	                clave_existente = true;
+	                break;
+	            }
+	        }
+	        
+	        if (!clave_existente)
+	        	break;
+		} else {
+			break;
 		}
-        generarClave(cedula, cola); // Llama recursivamente a la funci�n con la c�dula invertida
-    }*/
+    }
+    	if (clave_existente){
+        	Pila pila;
+        	newStack(&pila);
+        	
+        	for(int j = 0; j < len; j++){
+        		push(&pila, cedula[j]);
+			}
+			
+			cedula = "";
+			while(!isEmpty(&pila)){
+				cedula = cedula + pop(&pila);
+			}
+			
+			for (int i = len - 3; i >= 0; i--) {
+				clave = cedula.substr(i, 3);
+	            clave_existente = false;
+	            for (int j = 0; j < QUEUEMAX; j++) {
+	                if (cola.queue[j] == clave) {
+	                    clave_existente = true;
+	                    break;
+	                }
+	            }
+	            
+	            if (!clave_existente)
+	                break;
+			}
+		}
+		
+		if (clave_existente){
+			clave = "";
+			cout << "| No hay posibles ternas para esta cedula." << "\n| ";
+		} else
+			cout << "| La clave generada es: " << clave << "\n| ";
+			
+    return clave;
 }
-
