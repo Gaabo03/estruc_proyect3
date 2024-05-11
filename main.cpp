@@ -6,8 +6,12 @@
 
 using namespace std;
 
+//Definicion de tipos
 typedef string Numero;
-typedef struct queuer {
+typedef char Digito;
+
+//Estructura de la cola virtual
+typedef struct{
 	int front; //Frente de la cola
 	int rear; //Final de la cola
 	Numero queue[QUEUEMAX];
@@ -15,30 +19,28 @@ typedef struct queuer {
 	bool isFull;
 } Cola_Virtual;
 
-typedef char Digito;
-typedef struct stacker {
+//Estructura de la pila
+typedef struct{
 	int top;
 	Digito stack[STACKMAX];
 } Pila;
 
-//Para cola
 void newQueue(Cola_Virtual *queue);
 void enqueue(Cola_Virtual *q_ptr, Numero elem);
 Numero dequeue(Cola_Virtual *q_ptr);
-//Para pila
 void newStack(Pila *stack);
 void push (Pila *st_ptr, Digito elem);
 Digito pop(Pila *st_ptr);
 bool isEmpty(Pila *st_ptr);
 bool isFull(Pila *st_ptr);
-
 char menu();
 bool verificador_menu(char &);
 string pedir_cedula();
 Numero generarClave(Cola_Virtual queue, Numero cedula);
-void imprimir_informacion(Cola_Virtual cola, Numero taquilla[]);
+void imprimir_informacion(Cola_Virtual &cola, Numero &taquilla[]);
 
-int main(){
+//Funcion principal (aca se almacena la cola)
+int main(){ 
 	Cola_Virtual cola;
 	newQueue(&cola);
 	Numero taquilla[3], clave;
@@ -70,7 +72,8 @@ int main(){
 	return 0;
 }
 
-char menu(){
+//Funcion para mostrar el menu y obtener la respuesta del usuario
+char menu(){ 
 	char resp;
 	do {
 		system("CLS");
@@ -92,18 +95,80 @@ char menu(){
 	return resp;
 }
 
-bool verificador_menu(char &resp){
+//Funcion para verificar la respuesta dada en el menu
+bool verificador_menu(char &resp){ 
 	if (resp >= 'a' && resp <= 'z') {
         resp -= 32;
     }
 	return !(resp == 'A' || resp == '1' || resp == '2' || resp == '3' || resp == 'F');
 }
 
-string pedir_cedula(){
+// Funcion para solicitar el numero de cedula
+string pedir_cedula(){ 
 	string cedula;
 	cout << "|\n| Ingrese numero de cedula: ";
 	cin >> cedula;
 	return cedula;
+}
+
+// Funcion para verificar si la clave ya existe en la cola
+bool claveExisteEnCola(const Cola_Virtual &cola, const Numero &clave) {
+	if (cola.isEmpty) {
+        return false;
+    }
+    
+    for (int i = cola.front; i != (cola.rear + 1) % QUEUEMAX; i = (i + 1) % QUEUEMAX) {
+        if (cola.queue[i] == clave) {
+            return true;
+        }
+    }
+    return false;
+}
+
+//Funcion para invertir la cedula
+Numero invertirCedula(const Numero &cedula){
+	Pila pila;
+	newStack(&pila);
+	for(int j = 0; j < cedula.length(); j++){
+		push(&pila, cedula[j]);
+	}
+	
+	Numero cedulaInvertida = "";
+	while(!isEmpty(&pila)){
+		cedulaInvertida += pop(&pila);
+	}
+	
+	return cedulaInvertida;
+}
+
+// Funcion para generar la clave dada una cedula
+Numero generarClave(Cola_Virtual cola, Numero cedula) {    
+    if (cola.isFull){
+		cout << "| La cola ha llegado a su maximo. \n| ";
+    	return "";
+    }
+    
+    int len = cedula.length();
+    
+    for (int i = len - 3; i >= 0; i--) {
+        Numero clave = cedula.substr(i, 3);
+        if(!claveExisteEnCola(cola, clave)){
+        	cout << "| La clave generada es: " << clave << "\n| ";
+        	return clave;
+		}
+	}
+	
+	Numero cedulaInvertida = invertirCedula(cedula);
+	for (int i = len - 3; i >= 0; i--) {
+        Numero clave = cedulaInvertida.substr(i, 3);
+        if(!claveExisteEnCola(cola, clave)){
+        	cout << "| La clave generada es: " << clave << "\n| ";
+        	return clave;
+		}
+	}
+	
+	cout << "| No hay posibles ternas para esta cedula." << "\n| ";
+	return "";
 }
 
 // Codigo para la cola
@@ -145,12 +210,12 @@ Numero dequeue(Cola_Virtual *q_ptr){ //Eliminar elemento de la cola
 	return "";
 }
 
-//CODIGO PARA PILA
-void newStack(Pila *st_ptr){
+// Codigo para pila
+void newStack(Pila *st_ptr){ //Nueva pila
 	st_ptr->top = -1;
 }
 
-void push(Pila *st_ptr, Digito elem){
+void push(Pila *st_ptr, Digito elem){ //Agregar nuevo digito a la pila
 	if (st_ptr == NULL || isFull(st_ptr))
 		return;
 	else{
@@ -160,79 +225,23 @@ void push(Pila *st_ptr, Digito elem){
 	}
 }
 
-Digito pop(Pila *st_ptr){
+Digito pop(Pila *st_ptr){ //Quitar un digito de la pila
 	if (isEmpty(st_ptr))
 		return '\0';
 	else
 		return st_ptr->stack[st_ptr->top--];
 }
 
-bool isEmpty(Pila *st_ptr){
+bool isEmpty(Pila *st_ptr){ // Verificar si la pila esta vacia
 	return (st_ptr == NULL || st_ptr->top == -1) ? true : false;
 }
 
-bool isFull(Pila *st_ptr){
+bool isFull(Pila *st_ptr){ // Verificar si la pila esta llena
 	return (st_ptr == NULL || st_ptr->top == STACKMAX) ? true : false;
 }
 
-bool claveExisteEnCola(const Cola_Virtual &cola, const Numero &clave) {
-	if (cola.isEmpty) {
-        return false;
-    }
-    
-    for (int i = cola.front; i != (cola.rear + 1) % QUEUEMAX; i = (i + 1) % QUEUEMAX) {
-        if (cola.queue[i] == clave) {
-            return true;
-        }
-    }
-    return false;
-}
-
-Numero invertirCedula(const Numero &cedula){
-	Pila pila;
-	newStack(&pila);
-	for(int j = 0; j < cedula.length(); j++){
-		push(&pila, cedula[j]);
-	}
-	
-	Numero cedulaInvertida = "";
-	while(!isEmpty(&pila)){
-		cedulaInvertida += pop(&pila);
-	}
-	
-	return cedulaInvertida;
-}
-
-Numero generarClave(Cola_Virtual cola, Numero cedula) {    
-    if (cola.isFull){
-		cout << "| La cola ha llegado a su maximo. \n| ";
-    	return "";
-    }
-    
-    int len = cedula.length();
-    
-    for (int i = len - 3; i >= 0; i--) {
-        Numero clave = cedula.substr(i, 3);
-        if(!claveExisteEnCola(cola, clave)){
-        	cout << "| La clave generada es: " << clave << "\n| ";
-        	return clave;
-		}
-	}
-	
-	Numero cedulaInvertida = invertirCedula(cedula);
-	for (int i = len - 3; i >= 0; i--) {
-        Numero clave = cedulaInvertida.substr(i, 3);
-        if(!claveExisteEnCola(cola, clave)){
-        	cout << "| La clave generada es: " << clave << "\n| ";
-        	return clave;
-		}
-	}
-	
-	cout << "| No hay posibles ternas para esta cedula." << "\n| ";
-	return "";
-}
-
-void imprimir_informacion(Cola_Virtual cola, Numero taquilla[]){
+//Funcion para imprimir la informacion actualizada del sistema
+void imprimir_informacion(Cola_Virtual &cola, Numero &taquilla[]){
 	system("PAUSE");
 	system("cls");
 	cout << "|------- B A N C O  E L  T E S O R O -------|" << endl;
@@ -242,7 +251,7 @@ void imprimir_informacion(Cola_Virtual cola, Numero taquilla[]){
 	cout << "| En taquilla 3: " << (taquilla[2].empty() ? "Vacia" : taquilla[2]) << endl;
 	cout << "|-------------------------------------------|" << endl;
 	cout << "|-------------- Cola virtual ---------------|" << endl;
-	//Imprimir cola:
+	//Imprimir cola
 	if (!cola.isEmpty) {
         int num = 1;
         for (int i = cola.front; i != (cola.rear + 1) % QUEUEMAX; i = (i + 1) % QUEUEMAX) {
