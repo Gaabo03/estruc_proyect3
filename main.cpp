@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#define QUEUEMAX 10
+#define QUEUEMAX 25
 #define STACKMAX 10
 
 using namespace std;
@@ -37,7 +37,7 @@ char menu();
 bool verificador_menu(char &);
 string pedir_cedula();
 Numero generarClave(Cola_Virtual queue, Numero cedula);
-void imprimir_informacion(Cola_Virtual &cola, Numero &taquilla[]);
+void imprimir_informacion(Cola_Virtual &cola, Numero taquilla[]);
 
 //Funcion principal (aca se almacena la cola)
 int main(){ 
@@ -55,6 +55,7 @@ int main(){
 				if (!clave.empty())
 					enqueue(&cola, clave);
 				imprimir_informacion(cola, taquilla);
+				system("PAUSE");
 				break;
 			case '1':
 			case '2':
@@ -62,8 +63,14 @@ int main(){
 				clave = dequeue(&cola);
 				pos_taquilla = resp - '0';
 				taquilla[pos_taquilla-1] = clave;
-				cout << "|\n| Pase a la TAQUILLA " << resp << ": " << (clave.empty() ? "La cola esta vacia" : clave) << "\n| ";
-				imprimir_informacion(cola, taquilla);
+				if (clave.empty()){
+					cout << "|\n| La cola esta vacia\n| ";
+					taquilla[pos_taquilla-1] = taquilla[pos_taquilla-1].empty() ? "Vacia" : taquilla[pos_taquilla-1];
+				}else {
+					cout << "|\n| Pase a la TAQUILLA " << resp << ": " <<  clave << "\n| ";
+					imprimir_informacion(cola, taquilla);
+				}
+				system("PAUSE");
 				break;
 			default:
 				break;
@@ -103,12 +110,34 @@ bool verificador_menu(char &resp){
 	return !(resp == 'A' || resp == '1' || resp == '2' || resp == '3' || resp == 'F');
 }
 
+//Verifica que el string contenga solo numeros
+bool contiene_solo_numeros(const string& str) {
+    for (int i = 0; i < str.length(); i++) {
+        if (str[i] < '0' || str[i] > '9') {
+            return false;
+        }
+    }
+    return true;
+}
+
 // Funcion para solicitar el numero de cedula
-string pedir_cedula(){ 
-	string cedula;
-	cout << "|\n| Ingrese numero de cedula: ";
-	cin >> cedula;
-	return cedula;
+string pedir_cedula(){
+    string cedula;
+    bool valido = false;
+    do {
+        cout << "|\n| Ingrese numero de cedula: ";
+        cin >> cedula;
+         if (cedula.length() <= STACKMAX && contiene_solo_numeros(cedula)) {
+            valido = true;
+        } else if(cedula.length() > STACKMAX) {
+            cout << "| La cedula debe tener como maximo 10 digitos. Intente de nuevo." << endl;
+        }else if(!contiene_solo_numeros(cedula)){
+        	cout << "| La cedula debe tener solamente numeros. Intente de nuevo." << endl;
+		}
+        
+        cin.clear();
+    } while (!valido);
+    return cedula;
 }
 
 // Funcion para verificar si la clave ya existe en la cola
@@ -241,7 +270,7 @@ bool isFull(Pila *st_ptr){ // Verificar si la pila esta llena
 }
 
 //Funcion para imprimir la informacion actualizada del sistema
-void imprimir_informacion(Cola_Virtual &cola, Numero &taquilla[]){
+void imprimir_informacion(Cola_Virtual &cola, Numero taquilla[]){
 	system("PAUSE");
 	system("cls");
 	cout << "|------- B A N C O  E L  T E S O R O -------|" << endl;
@@ -261,5 +290,4 @@ void imprimir_informacion(Cola_Virtual &cola, Numero &taquilla[]){
         cout << "| Cola virtual vacia actualmente." << endl;
     }
     cout << "|\n| ";
-    system("PAUSE");
 }
