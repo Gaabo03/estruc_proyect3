@@ -4,6 +4,9 @@
 #define QUEUEMAX 25
 #define STACKMAX 10
 
+// Gustavo Morillo V-30981606 SEC 1
+// Gabriel Ulacio V-30443148 SEC 1
+
 using namespace std;
 
 //Definicion de tipos
